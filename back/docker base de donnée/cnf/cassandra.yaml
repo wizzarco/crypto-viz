@@ -1,8 +1,11 @@
 cluster_name: 'T-DAT-901'
+commitlog_sync: batch
 listen_address: 172.16.238.13
 rpc_address: 0.0.0.0
+broadcast_rpc_address: 172.16.238.13
 endpoint_snitch: GossipingPropertyFileSnitch
 seed_provider:
   - class_name: org.apache.cassandra.locator.SimpleSeedProvider
     parameters:
          - seeds: "172.16.238.13"
+partitioner: org.apache.cassandra.dht.Murmur3Partitioner
