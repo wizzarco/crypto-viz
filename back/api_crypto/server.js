@@ -3,14 +3,14 @@ const cors = require('cors');
 const axios = require('axios');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 11003;
 
 app.use(express.json());
 app.use(cors());
 
 const apiKey = '422b67ada252e9771ef77e13b5f220c551d1861649895ec3d42fabf7741534ef';
 
-app.get('/api/cryptos/top-trending', async (req, res) => {
+app.get('/api_back/cryptos/top-trending', async (req, res) => {
   try {
     const response = await axios.get('https://min-api.cryptocompare.com/data/top/totaltoptiervolfull?tsym=USD', {
         params: {
@@ -33,7 +33,7 @@ app.get('/api/cryptos/top-trending', async (req, res) => {
   }
 });
 
-app.get('/api/cryptos/top-gainers', async (req, res) => {
+app.get('/api_back/cryptos/top-gainers', async (req, res) => {
   try {
     const response = await axios.get('https://min-api.cryptocompare.com/data/top/mktcapfull?tsym=USD', {
       params: {
@@ -56,7 +56,7 @@ app.get('/api/cryptos/top-gainers', async (req, res) => {
   }
 });
 
-app.get('/api/cryptos/total-mining', async (req, res) => {
+app.get('/api_back/cryptos/total-mining', async (req, res) => {
     try {
       const response = await axios.get('https://min-api.cryptocompare.com/data/blockchain/mining/calculator?fsyms=BTC,ETH,ZEC&tsyms=USD', {
         params: {
@@ -81,6 +81,42 @@ app.get('/api/cryptos/total-mining', async (req, res) => {
     } catch (error) {
       console.error('Erreur lors de la récupération des données:', error.response ? error.response.data : error.message);
       res.status(error.response ? error.response.status : 500).json({ error: 'Erreur lors de la récupération des données' });
+    }
+});
+
+app.get('/api_back/cryptos/all-cryptocurrency', async (req, res) => {
+    try {
+        const page = req.query.page || 1; 
+        const response = await axios.get(`https://min-api.cryptocompare.com/data/top/totaltoptiervolfull?tsym=USD&page=${page}`, {
+            params: {
+                apikey: apiKey,
+            },
+        });
+
+        const data = response.data.Data;
+
+        const allCurrencyCryptos = Object.keys(data).map(key => {
+            const crypto = data[key];
+            return {
+                image: `https://www.cryptocompare.com${crypto.CoinInfo.ImageUrl}`,
+                symbol: crypto.CoinInfo.Name,
+                fullname: crypto.CoinInfo.FullName,
+                rating: crypto.CoinInfo.Rating,
+                marketperformance: crypto.CoinInfo.MarketPerformanceRating,
+                maxsupply: crypto.CoinInfo.MaxSupply,
+                top24h: crypto.CoinInfo.TOPTIERVOLUME24HOUR,
+                price: crypto.DISPLAY.USD.PRICE,
+                lastvolume: crypto.DISPLAY.USD.LASTVOLUME,
+                volumehour: crypto.DISPLAY.USD.VOLUMEHOUR,
+                volumeday: crypto.DISPLAY.USD.VOLUMEDAY,
+                volume24h: crypto.DISPLAY.USD.VOLUME24HOUR,
+            };
+        });
+
+        res.json(allCurrencyCryptos);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des données:', error.response ? error.response.data : error.message);
+        res.status(error.response ? error.response.status : 500).json({ error: 'Erreur lors de la récupération des données' });
     }
 });
   

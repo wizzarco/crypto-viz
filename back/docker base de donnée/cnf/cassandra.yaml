@@ -1,4 +1,4 @@
-cluster_name: 'T-DAT-901'
+cluster_name: 'tdat901'
 commitlog_sync: batch
 listen_address: 172.16.238.13
 rpc_address: 0.0.0.0

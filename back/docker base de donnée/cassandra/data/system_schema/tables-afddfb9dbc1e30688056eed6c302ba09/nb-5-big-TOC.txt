@@ -1,8 +1,8 @@
 TOC.txt
-Statistics.db
+Digest.crc32
+Data.db
 CompressionInfo.db
 Index.db
-Filter.db
-Digest.crc32
+Statistics.db
 Summary.db
-Data.db
+Filter.db
