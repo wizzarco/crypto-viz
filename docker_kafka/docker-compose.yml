@@ -30,7 +30,7 @@ services:
 
   kowl:
     container_name: t-dat-901-kowl
-    image: redpandadata/console:latest
+    image: rsmnarts/kowl:latest
     ports:
       - "8080:8080"
     environment:
