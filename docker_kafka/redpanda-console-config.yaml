@@ -52,17 +52,17 @@ connect:
   enabled: true
   clusters:
     - name: tdat901
-      url: http://localhost:8083
+      url: http://localhost:8080
       tls:
         enabled: false
-      username: admin
-      password: admin
+        username: admin
+        password: admin
     - name: analytics
-      url: http://localhost:8083
+      url: http://localhost:8080
       tls:
         enabled: false
-      username: admin
-      password: admin
+        username: admin
+        password: admin
 
   # clientId: console
   # rackId: # In multi zone Kafka clusters you can reduce traffic costs by consuming messages from replica brokers in the same zone

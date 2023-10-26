@@ -12,72 +12,63 @@ services:
     networks:
       - default
 
-  kafka:
-    container_name: t-dat-901-kafka
-    image: wurstmeister/kafka
+  redpanda:
+    container_name: t-dat-901-redpanda
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    command:
+      - redpanda
+      - start
+      - --smp
+      - '1'
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - '0'
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:29092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:29092
+      - --pandaproxy-addr
+      - PLAINTEXT://0.0.0.0:28082,OUTSIDE://0.0.0.0:8082
+      - --advertise-pandaproxy-addr
+      - PLAINTEXT://redpanda:28082,OUTSIDE://localhost:8082
     ports:
-      - "9092:9092"
-    expose:
-      - "9093"
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://host.docker.internal:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
-      KAFKA_ZOOKEEPER_CONNECT: t-dat-901-zookeeper:2181
+      - 8081:8081
+      - 8082:8082
+      - 9092:9092
+      - 9644:9644
+      - 29092:29092
     networks:
       - default
 
-  kowl:
-    container_name: t-dat-901-kowl
-    image: rsmnarts/kowl:latest
-    ports:
-      - "8080:8080"
+  console:
+    container_name: t-dat-901-console
+    image: docker.redpanda.com/redpandadata/console:latest
+    entrypoint: /bin/sh
+    command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://host.docker.internal:9092
-      KAFKA_BROKERS: host.docker.internal:9092
-      WAIT_FOR_KAFKA: "true"
-      CONNECT_ENABLED: "true"
-      # CONNECT_CLUSTERS_0_NAME: "tdat901"
-      # CONNECT_CLUSTERS_0_URL: "http://localhost:8080"  
-      # CONNECT_CLUSTERS_0_TLS_ENABLED: "false"
-      # CONNECT_CLUSTERS_0_USERNAME: "admin"
-      # CONNECT_CLUSTERS_0_PASSWORD: "admin"
-      # CONNECT_CLUSTERS_1_NAME: "analytics"
-      # CONNECT_CLUSTERS_1_URL: "http://localhost:8080" 
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["host.docker.internal:29092"]
+          schemaRegistry:
+            enabled: true
+            urls: ["http://host.docker.internal:8081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://host.docker.internal:9644"]
+        connect:
+          enabled: true
+          clusters:
+            - name: tdat901
+              url: http://host.docker.internal:8080
+    ports:
+      - 8080:8080
     depends_on:
-      - kafka
+      - redpanda
     networks:
       - default
     #volumes:
-    #  - ./redpanda-console-config.yaml:/etc/redpanda/redpanda-console-config.yaml
-
-  # redpanda:
-  #   image: docker.redpanda.com/redpandadata/redpanda:latest
-  #   container_name: t-dat-901-redpanda
-  #   command:
-  #     - redpanda
-  #     - start
-  #     - --smp
-  #     - '1'
-  #     - --reserve-memory
-  #     - 0M
-  #     - --overprovisioned
-  #     - --node-id
-  #     - '0'
-  #     - --kafka-addr
-  #     - PLAINTEXT://0.0.0.0:29092
-  #     - --advertise-kafka-addr
-  #     - PLAINTEXT://redpanda:29092
-  #     - --pandaproxy-addr
-  #     - PLAINTEXT://0.0.0.0:28082,OUTSIDE://0.0.0.0:8082
-  #     - --advertise-pandaproxy-addr
-  #     - PLAINTEXT://redpanda:28082,OUTSIDE://localhost:8082
-  #   ports:
-  #     - 8080:8080 
-  #     - 8081:8081
-  #     - 8082:8082
-  #     - 28082:28082
-  #     - 29092:29092
-  #   networks:
-  #     - default
+    #  - ./redpanda-console-config.yaml:/etc/redpanda/redpanda-console-config.yaml Pas prend en compte config optionnel
