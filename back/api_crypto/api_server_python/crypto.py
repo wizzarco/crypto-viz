@@ -1,6 +1,6 @@
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import requests
 
 app = Flask(__name__)
@@ -15,6 +15,7 @@ cluster = Cluster(**cassandra_config)
 default_keyspace = 'tdat901'
 session = cluster.connect(default_keyspace)
 
+# Route pour vérifer la connection à la base de données
 @app.route('/api_bdd/check_cassandra_connection', methods=['GET'])
 def check_cassandra_connection():
     try:
@@ -25,15 +26,75 @@ def check_cassandra_connection():
     except Exception as e:
         return jsonify({'error': f'Erreur lors de la connexion à Cassandra : {str(e)}'}), 500
 
+# Route pour sauvegarder les crypto-monnaies
+@app.route('/api_bdd/enregistrer_donnees_cryptocurrency', methods=['GET'])
+def enregistrer_donnees_cryptocurrency():
+    try:
+        # Nombre total de pages
+        total_pages = 10  # Mettez à jour avec le nombre total de pages
+
+        # Itérer sur toutes les pages et enregistrer les données
+        for page in range(1, total_pages + 1):
+            # Récupérer les données depuis le serveur Node.js
+            response = requests.get(f'http://localhost:11003/api_back/cryptos/all-cryptocurrency?page={page}')
+
+            # Vérifier si la réponse est valide (code HTTP 200)
+            if response.status_code == 200:
+                crypto_currency_data = response.json()
+
+                # Enregistrer les données dans Cassandra
+                enregistrer_donnees_cassandra('crypto_currency', crypto_currency_data)
+            else:
+                return jsonify({'error': f'Erreur lors de la récupération des données pour la page {page}'}), response.status_code
+
+        return jsonify({'message': 'Données enregistrées avec succès'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def enregistrer_donnees_cassandra(table_name, data):
+    # Utiliser la session globale définie lors de la configuration
+    session.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ("
+                    "id UUID PRIMARY KEY, "
+                    "image TEXT, "
+                    "symbol TEXT, "
+                    "fullname TEXT, "
+                    "maxsupply FLOAT, "
+                    "top24h TEXT, "
+                    "price TEXT, "
+                    "lastvolume TEXT, "
+                    "volumehour TEXT, "
+                    "volumeday TEXT, "
+                    "volume24h TEXT"
+                    ")")
+
+    # Insérer les données dans la table
+    for entry in data:
+        session.execute(
+            f"INSERT INTO {table_name} (id, image, symbol, fullname, maxsupply, top24h, price, lastvolume, volumehour, volumeday, volume24h) "
+            "VALUES (uuid(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (
+                entry.get('image'),
+                entry.get('symbol'),
+                entry.get('fullname'),
+                entry.get('maxsupply'),
+                entry.get('top24h'),
+                entry.get('price'),
+                entry.get('lastvolume'),
+                entry.get('volumehour'),
+                entry.get('volumeday'),
+                entry.get('volume24h'),
+            ),
+        )
+
 # Routes de l'API Flask
-@app.route('/api_bdd/enregistrer_donnees', methods=['GET'])
+@app.route('/api_bdd/enregistrer_donnees_top', methods=['GET'])
 def enregistrer_donnees():
     try:
         # Récupérer les données depuis le serveur Node.js
         top_trending_data = requests.get('http://localhost:11003/api_back/cryptos/top-trending').json()
         top_gainers_data = requests.get('http://localhost:11003/api_back/cryptos/top-gainers').json()
         total_mining_data = requests.get('http://localhost:11003/api_back/cryptos/total-mining').json()
-
+ 
         # Enregistrer les données dans Cassandra
         enregistrer_donnees_cassandra('top_trending', top_trending_data)
         enregistrer_donnees_cassandra('top_gainers', top_gainers_data)

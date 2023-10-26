@@ -86,8 +86,8 @@ app.get('/api_back/cryptos/total-mining', async (req, res) => {
 
 app.get('/api_back/cryptos/all-cryptocurrency', async (req, res) => {
     try {
-        const page = req.query.page || 1; 
-        const response = await axios.get(`https://min-api.cryptocompare.com/data/top/totaltoptiervolfull?tsym=USD&page=${page}`, {
+        const page = req.query.page || 1; // Commence à partir de zéro
+        const response = await axios.get(`https://min-api.cryptocompare.com/data/top/totaltoptiervolfull?tsym=USD&assetClass=ALL&page=${page - 1}`, {
             params: {
                 apikey: apiKey,
             },
@@ -98,13 +98,14 @@ app.get('/api_back/cryptos/all-cryptocurrency', async (req, res) => {
         const allCurrencyCryptos = Object.keys(data).map(key => {
             const crypto = data[key];
             return {
+                rank: crypto.Rating,
                 image: `https://www.cryptocompare.com${crypto.CoinInfo.ImageUrl}`,
                 symbol: crypto.CoinInfo.Name,
                 fullname: crypto.CoinInfo.FullName,
-                rating: crypto.CoinInfo.Rating,
+                rating: crypto.CoinInfo.MarketPerformanceRating,
                 marketperformance: crypto.CoinInfo.MarketPerformanceRating,
                 maxsupply: crypto.CoinInfo.MaxSupply,
-                top24h: crypto.CoinInfo.TOPTIERVOLUME24HOUR,
+                top24h: crypto.DISPLAY.USD.TOPTIERVOLUME24HOUR,
                 price: crypto.DISPLAY.USD.PRICE,
                 lastvolume: crypto.DISPLAY.USD.LASTVOLUME,
                 volumehour: crypto.DISPLAY.USD.VOLUMEHOUR,
