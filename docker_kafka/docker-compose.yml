@@ -30,14 +30,54 @@ services:
 
   kowl:
     container_name: t-dat-901-kowl
-    image: rsmnarts/kowl:latest
+    image: redpandadata/console:latest
     ports:
       - "8080:8080"
     environment:
       KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://host.docker.internal:9092
       KAFKA_BROKERS: host.docker.internal:9092
       WAIT_FOR_KAFKA: "true"
+      CONNECT_ENABLED: "true"
+      # CONNECT_CLUSTERS_0_NAME: "tdat901"
+      # CONNECT_CLUSTERS_0_URL: "http://localhost:8080"  
+      # CONNECT_CLUSTERS_0_TLS_ENABLED: "false"
+      # CONNECT_CLUSTERS_0_USERNAME: "admin"
+      # CONNECT_CLUSTERS_0_PASSWORD: "admin"
+      # CONNECT_CLUSTERS_1_NAME: "analytics"
+      # CONNECT_CLUSTERS_1_URL: "http://localhost:8080" 
     depends_on:
       - kafka
     networks:
       - default
+    #volumes:
+    #  - ./redpanda-console-config.yaml:/etc/redpanda/redpanda-console-config.yaml
+
+  # redpanda:
+  #   image: docker.redpanda.com/redpandadata/redpanda:latest
+  #   container_name: t-dat-901-redpanda
+  #   command:
+  #     - redpanda
+  #     - start
+  #     - --smp
+  #     - '1'
+  #     - --reserve-memory
+  #     - 0M
+  #     - --overprovisioned
+  #     - --node-id
+  #     - '0'
+  #     - --kafka-addr
+  #     - PLAINTEXT://0.0.0.0:29092
+  #     - --advertise-kafka-addr
+  #     - PLAINTEXT://redpanda:29092
+  #     - --pandaproxy-addr
+  #     - PLAINTEXT://0.0.0.0:28082,OUTSIDE://0.0.0.0:8082
+  #     - --advertise-pandaproxy-addr
+  #     - PLAINTEXT://redpanda:28082,OUTSIDE://localhost:8082
+  #   ports:
+  #     - 8080:8080 
+  #     - 8081:8081
+  #     - 8082:8082
+  #     - 28082:28082
+  #     - 29092:29092
+  #   networks:
+  #     - default
