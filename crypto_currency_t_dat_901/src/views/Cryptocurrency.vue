@@ -1,5 +1,6 @@
 <template>
     <div>
+      <!-- Navbar -->
       <Navbar />
 
       <div class="font-sans flex flex-col mt-32 mb-20">
