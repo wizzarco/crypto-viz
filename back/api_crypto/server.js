@@ -98,19 +98,19 @@ app.get('/api_back/cryptos/all-cryptocurrency', async (req, res) => {
         const allCurrencyCryptos = Object.keys(data).map(key => {
             const crypto = data[key];
             return {
-                rank: crypto.Rating,
-                image: `https://www.cryptocompare.com${crypto.CoinInfo.ImageUrl}`,
-                symbol: crypto.CoinInfo.Name,
-                fullname: crypto.CoinInfo.FullName,
-                rating: crypto.CoinInfo.MarketPerformanceRating,
-                marketperformance: crypto.CoinInfo.MarketPerformanceRating,
-                maxsupply: crypto.CoinInfo.MaxSupply,
-                top24h: crypto.DISPLAY.USD.TOPTIERVOLUME24HOUR,
-                price: crypto.DISPLAY.USD.PRICE,
-                lastvolume: crypto.DISPLAY.USD.LASTVOLUME,
-                volumehour: crypto.DISPLAY.USD.VOLUMEHOUR,
-                volumeday: crypto.DISPLAY.USD.VOLUMEDAY,
-                volume24h: crypto.DISPLAY.USD.VOLUME24HOUR,
+              ratingrank: crypto.CoinInfo?.Rating?.Weiss?.Rating || 'N/A',
+              image: `https://www.cryptocompare.com${crypto.CoinInfo?.ImageUrl || ''}`,
+              symbol: crypto.CoinInfo?.Name || 'N/A',
+              fullname: crypto.CoinInfo?.FullName || 'N/A',
+              rating: crypto.CoinInfo?.Rating?.Weiss?.MarketPerformanceRating || 'N/A',
+              marketperformance: crypto.CoinInfo?.Rating?.Weiss?.MarketPerformanceRating || 'N/A',
+              maxsupply: crypto.CoinInfo?.MaxSupply || 'N/A',
+              top24h: crypto.RAW?.USD?.TOPTIERVOLUME24HOUR || 'N/A',
+              price: crypto.RAW?.USD?.PRICE || 'N/A',
+              lastvolume: crypto.RAW?.USD?.LASTVOLUME || 'N/A',
+              volumehour: crypto.RAW?.USD?.VOLUMEHOUR || 'N/A',
+              volumeday: crypto.RAW?.USD?.VOLUMEDAY || 'N/A',
+              volume24h: crypto.RAW?.USD?.VOLUME24HOUR || 'N/A',
             };
         });
 
@@ -119,6 +119,45 @@ app.get('/api_back/cryptos/all-cryptocurrency', async (req, res) => {
         console.error('Erreur lors de la récupération des données:', error.response ? error.response.data : error.message);
         res.status(error.response ? error.response.status : 500).json({ error: 'Erreur lors de la récupération des données' });
     }
+});
+
+app.get('/api_back/cryptos/all-exchanges', async (req, res) => {
+  try {
+      const response = await axios.get('https://min-api.cryptocompare.com/data/exchanges/general', {
+          params: {
+              apikey: apiKey,
+          },
+      });
+
+      const data = response.data.Data;
+
+      const allExchangesCryptos = Object.values(data).map(exchange => {
+          return {
+              image: `https://www.cryptocompare.com${exchange.LogoUrl}`,
+              link: exchange.AffiliateURL,
+              name: exchange.Name,
+              gradepoint: exchange.GradePoints,
+              marketquality: exchange.GradePointsSplit.MarketQuality,
+              negativereport: exchange.GradePointsSplit.NegativeReportsPenalty,
+              country: exchange.Country,
+              volume24h: exchange.TOTALVOLUME24H,
+              rating: {
+                  one: exchange.Rating.One,
+                  two: exchange.Rating.Two,
+                  three: exchange.Rating.Three,
+                  four: exchange.Rating.Four,
+                  five: exchange.Rating.Five,
+                  avg: exchange.Rating.Avg,
+                  totalUsers: exchange.Rating.TotalUsers,
+              },
+          };
+      });
+
+      res.json(allExchangesCryptos);
+  } catch (error) {
+      console.error('Erreur lors de la récupération des données:', error.response ? error.response.data : error.message);
+      res.status(error.response ? error.response.status : 500).json({ error: 'Erreur lors de la récupération des données' });
+  }
 });
   
 app.listen(port, () => {

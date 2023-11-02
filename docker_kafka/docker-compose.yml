@@ -82,25 +82,25 @@ services:
     depends_on:
       - zookeeper-server
 
-  kafka-sr1:
-    image: 'confluentinc/cp-schema-registry:latest'
-    container_name: 'kafka-sr1'
-    hostname: 'kafka-sr1'
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z kafka-sr1 8081 || exit 1" ]
-      interval: 5s
-      timeout: 5s
-      retries: 60
-    networks:
-      - default
-    ports:
-      - '8081:8081'
-    environment:
-      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka-server1:9092,kafka-server2:9092,kafka-server3:9092
-      - SCHEMA_REGISTRY_HOST_NAME=kafka-sr1
-      - SCHEMA_REGISTRY_LISTENERS=http://host.docker.internal:8081
-    depends_on:
-      - zookeeper-server
+  # kafka-sr1:
+  #   image: 'confluentinc/cp-schema-registry:latest'
+  #   container_name: 'kafka-sr1'
+  #   hostname: 'kafka-sr1'
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "nc -z kafka-sr1 8081 || exit 1" ]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 60
+  #   networks:
+  #     - default
+  #   ports:
+  #     - '8081:8081'
+  #   environment:
+  #     - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka-server1:9092,kafka-server2:9092,kafka-server3:9092
+  #     - SCHEMA_REGISTRY_HOST_NAME=kafka-sr1
+  #     - SCHEMA_REGISTRY_LISTENERS=http://host.docker.internal:8081
+  #   depends_on:
+  #     - zookeeper-server
 
   kafka-connect1:
     image: 'confluentinc/cp-kafka-connect:latest'
@@ -114,7 +114,7 @@ services:
     networks:
       - default
     ports:
-      - '8082:8082'
+      - '8083:8082'
     volumes:
       - ./vol-kafka-connect-jar:/etc/kafka-connect/jars
       - ./vol-kafka-connect-conf:/etc/kafka-connect/connectors
@@ -139,80 +139,65 @@ services:
       - kafka-server2
       - kafka-server3
 
-  kowl:
-    image: rsmnarts/kowl:latest
-    container_name: 'kowl'
+  # Redpanda
+  redpanda:
+    container_name: t-dat-901-redpanda
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    command:
+      - redpanda
+      - start
+      - --smp
+      - '1'
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - '0'
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:29092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:29092
+      - --pandaproxy-addr
+      - PLAINTEXT://0.0.0.0:28082,OUTSIDE://0.0.0.0:8082
+      - --advertise-pandaproxy-addr
+      - PLAINTEXT://redpanda:28082,OUTSIDE://localhost:8082
     ports:
-      - '8083:8080'
-    environment:
-      - KAFKA_BROKERS=kafka-server1:9092,kafka-server2:9092,kafka-server3:9092
-    depends_on:
-      - kafka-server1
-      - kafka-server2
-      - kafka-server3
+      - 29092:29092
+      - 8082:8082
+      - 8081:8081
+      - 9644:9644
     networks:
       - default
 
-  # Redpanda qui utilise déjà kafka solo
-  # redpanda:
-  #   container_name: t-dat-901-redpanda
-  #   image: docker.redpanda.com/redpandadata/redpanda:latest
-  #   command:
-  #     - redpanda
-  #     - start
-  #     - --smp
-  #     - '1'
-  #     - --reserve-memory
-  #     - 0M
-  #     - --overprovisioned
-  #     - --node-id
-  #     - '0'
-  #     - --kafka-addr
-  #     - PLAINTEXT://0.0.0.0:29092
-  #     - --advertise-kafka-addr
-  #     - PLAINTEXT://redpanda:29092
-  #     - --pandaproxy-addr
-  #     - PLAINTEXT://0.0.0.0:28082,OUTSIDE://0.0.0.0:8082
-  #     - --advertise-pandaproxy-addr
-  #     - PLAINTEXT://redpanda:28082,OUTSIDE://localhost:8082
-  #   ports:
-  #     - 8081:8081
-  #     - 8082:8082
-  #     - 9092:9092
-  #     - 9644:9644
-  #     - 29092:29092
-  #   networks:
-  #     - default
-
-  # console:
-  #   container_name: t-dat-901-console
-  #   image: docker.redpanda.com/redpandadata/console:latest
-  #   entrypoint: /bin/sh
-  #   command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
-  #   environment:
-  #     CONFIG_FILEPATH: /tmp/config.yml
-  #     CONSOLE_CONFIG_FILE: |
-  #       kafka:
-  #         brokers: ["host.docker.internal:29092"]
-  #         schemaRegistry:
-  #           enabled: true
-  #           urls: ["http://host.docker.internal:8081"]
-  #       redpanda:
-  #         adminApi:
-  #           enabled: true
-  #           urls: ["http://host.docker.internal:9644"]
-  #       connect:
-  #         enabled: true
-  #         clusters:
-  #           - name: tdat901
-  #             url: http://host.docker.internal:8080
-  #   ports:
-  #     - 8080:8080
-  #   depends_on:
-  #     - redpanda
-  #   networks:
-  #     - default
-  #   volumes:
+  console:
+    container_name: t-dat-901-console
+    image: docker.redpanda.com/redpandadata/console:latest
+    entrypoint: /bin/sh
+    command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["host.docker.internal:9092"]
+          schemaRegistry:
+            enabled: true
+            urls: ["http://host.docker.internal:8081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://host.docker.internal:9644"]
+        connect:
+          enabled: true
+          clusters:
+            - name: tdat901
+              url: http://host.docker.internal:8080
+    ports:
+      - 8080:8080
+    depends_on:
+      - redpanda
+    networks:
+      - default
+  #  volumes:
   #     - ./config/redpanda-console-config.yaml:/etc/redpanda/redpanda-console-config.yaml Pas prend en compte config optionnel
 
   # Cassandra microservice
