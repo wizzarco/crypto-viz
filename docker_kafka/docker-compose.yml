@@ -314,45 +314,9 @@ services:
       context: .
       dockerfile: config/dockerfile-nodejs
     container_name: server-api-bdd-front
-    command: sh -c "npm install express cors cassandra-driver && node /app/bdd_front.js"
+    command: sh -c "npm install express cors cassandra-driver  && sleep 60 && node /app/bdd_front.js"
     volumes:
       - /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/back/api_crypto:/app
     ports:
       - "11004:11004"
-
-  # kafka-consumer-server:
-  #   build:
-  #     context: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/front/crypto_currency_t_dat_901
-  #     dockerfile: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/docker_kafka/config/dockerfile-front
-  #   container_name: kafka-consumer-front
-  #   environment:
-  #     - KAFKA_SERVERS=kafka-server1:9092
-  #     - KAFKAJS_NO_PARTITIONER_WARNING=1
-  #     - KAFKA_GROUP_ID=front-end-group
-  #   depends_on:
-  #     - zookeeper-server
-  #     - kafka-server1
-  #     - kafka-server2
-  #     - kafka-server3
-  #     - create-topic-for-vue 
-  #   networks:
-  #     - default
-  #   command: /bin/sh -c "sleep 60 && node KafkaConsumer.js"
-
-  # kafka-producer-server:
-  #   build:
-  #     context: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/front/crypto_currency_t_dat_901
-  #     dockerfile: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/docker_kafka/config/dockerfile-front
-  #   container_name: kafka-producer-front
-  #   environment:
-  #     - KAFKA_SERVERS=kafka-server1:9092
-  #   depends_on:
-  #     - zookeeper-server
-  #     - kafka-server1
-  #     - kafka-server2
-  #     - kafka-server3
-  #     - create-topic-for-vue
-  #   networks:
-  #     - default
-  #   command: /bin/sh -c "sleep 60 && node KafkaProducer.js"
   # Fin du lancement des serveurs Node.js

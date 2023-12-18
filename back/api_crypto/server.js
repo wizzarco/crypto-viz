@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const { connectProducer, sendToKafka, disconnectProducer } = require('./kafka/KafkaProducer');
-const { connectConsumer, consumeMessages, disconnectConsumer } = require('./kafka/KafkaConsumer');
+const { connectProducer, sendToKafka, disconnectProducer } = require('./kafka_server/KafkaProducer');
+const { connectConsumer, consumeMessages, disconnectConsumer } = require('./kafka_server/KafkaConsumer');
 
 const app = express();
 const port = process.env.PORT || 11003;
@@ -12,8 +12,8 @@ app.use(cors());
 
 const apiKey = '422b67ada252e9771ef77e13b5f220c551d1861649895ec3d42fabf7741534ef';
 
-// Démarrage du Producteur Kafka
-connectProducer().then(() => console.log('Producteur Kafka connecté')).catch(e => console.error('Erreur de connexion du producteur Kafka:', e));
+// Démarrage du Producer Kafka
+connectProducer().then(() => console.log('Producteur Kafka connecté')).catch(e => console.error('Erreur de connexion du producer Kafka:', e));
 
 app.get('/api_back/cryptos/top-trending', async (req, res) => {
   try {
@@ -31,7 +31,7 @@ app.get('/api_back/cryptos/top-trending', async (req, res) => {
         marketperformance: crypto.DISPLAY.USD.TOPTIERVOLUME24HOUR,
     }));
 
-    await sendToKafka('server_crytpoviz', topTrendingCryptos);
+    await sendToKafka('server_cryptoviz', topTrendingCryptos);
 
     res.json(topTrendingCryptos);
   } catch (error) {
@@ -56,7 +56,7 @@ app.get('/api_back/cryptos/top-gainers', async (req, res) => {
         market_cap: crypto.DISPLAY.USD.MKTCAP,
     }));
 
-    await sendToKafka('server_crytpoviz', topGainersCryptos);
+    await sendToKafka('server_cryptoviz', topGainersCryptos);
 
     res.json(topGainersCryptos);
   } catch (error) {
@@ -86,7 +86,7 @@ app.get('/api_back/cryptos/total-mining', async (req, res) => {
         };
       });
 
-      await sendToKafka('server_crytpoviz', totalMiningCryptos);
+      await sendToKafka('server_cryptoviz', totalMiningCryptos);
   
       res.json(totalMiningCryptos);
     } catch (error) {
@@ -125,7 +125,7 @@ app.get('/api_back/cryptos/all-cryptocurrency', async (req, res) => {
             };
         });
 
-        await sendToKafka('server_crytpoviz', allCurrencyCryptos);
+        await sendToKafka('server_cryptoviz', allCurrencyCryptos);
 
         res.json(allCurrencyCryptos);
     } catch (error) {
@@ -166,7 +166,7 @@ app.get('/api_back/cryptos/all-exchanges', async (req, res) => {
           };
       });
 
-      await sendToKafka('server_crytpoviz', allExchangesCryptos);
+      await sendToKafka('server_cryptoviz', allExchangesCryptos);
 
       res.json(allExchangesCryptos);
   } catch (error) {
