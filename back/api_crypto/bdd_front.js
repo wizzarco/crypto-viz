@@ -10,7 +10,7 @@ app.use(cors());
 
 // Configurer la connexion à Cassandra
 const client = new Client({
-    contactPoints: ['127.0.0.1'],
+    contactPoints: ['host.docker.internal'],
     localDataCenter: 'dc1',
     keyspace: 'tdat901',
     credentials: { username: 'loic', password: 'test1234' },

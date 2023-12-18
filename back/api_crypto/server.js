@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const { connectProducer, sendToKafka, disconnectProducer } = require('./kafka/KafkaProducer');
+const { connectConsumer, consumeMessages, disconnectConsumer } = require('./kafka/KafkaConsumer');
 
 const app = express();
 const port = process.env.PORT || 11003;
@@ -9,6 +11,9 @@ app.use(express.json());
 app.use(cors());
 
 const apiKey = '422b67ada252e9771ef77e13b5f220c551d1861649895ec3d42fabf7741534ef';
+
+// Démarrage du Producteur Kafka
+connectProducer().then(() => console.log('Producteur Kafka connecté')).catch(e => console.error('Erreur de connexion du producteur Kafka:', e));
 
 app.get('/api_back/cryptos/top-trending', async (req, res) => {
   try {
@@ -25,6 +30,8 @@ app.get('/api_back/cryptos/top-trending', async (req, res) => {
         price: crypto.DISPLAY.USD.PRICE,
         marketperformance: crypto.DISPLAY.USD.TOPTIERVOLUME24HOUR,
     }));
+
+    await sendToKafka('server_crytpoviz', topTrendingCryptos);
 
     res.json(topTrendingCryptos);
   } catch (error) {
@@ -48,6 +55,8 @@ app.get('/api_back/cryptos/top-gainers', async (req, res) => {
         price: crypto.DISPLAY.USD.PRICE,
         market_cap: crypto.DISPLAY.USD.MKTCAP,
     }));
+
+    await sendToKafka('server_crytpoviz', topGainersCryptos);
 
     res.json(topGainersCryptos);
   } catch (error) {
@@ -76,6 +85,8 @@ app.get('/api_back/cryptos/total-mining', async (req, res) => {
           blockreward: crypto.CoinInfo.BlockReward,
         };
       });
+
+      await sendToKafka('server_crytpoviz', totalMiningCryptos);
   
       res.json(totalMiningCryptos);
     } catch (error) {
@@ -113,6 +124,8 @@ app.get('/api_back/cryptos/all-cryptocurrency', async (req, res) => {
               volume24h: crypto.RAW?.USD?.VOLUME24HOUR || 'N/A',
             };
         });
+
+        await sendToKafka('server_crytpoviz', allCurrencyCryptos);
 
         res.json(allCurrencyCryptos);
     } catch (error) {
@@ -153,11 +166,30 @@ app.get('/api_back/cryptos/all-exchanges', async (req, res) => {
           };
       });
 
+      await sendToKafka('server_crytpoviz', allExchangesCryptos);
+
       res.json(allExchangesCryptos);
   } catch (error) {
       console.error('Erreur lors de la récupération des données:', error.response ? error.response.data : error.message);
       res.status(error.response ? error.response.status : 500).json({ error: 'Erreur lors de la récupération des données' });
   }
+});
+
+// Démarrage et utilisation du Consommateur Kafka
+connectConsumer().then(() => {
+  console.log('Consommateur Kafka connecté');
+  consumeMessages((data) => {
+    console.log('Message reçu:', data);
+    // Traitez ici les données reçues de Kafka
+  });
+}).catch(e => console.error('Erreur de connexion du consommateur Kafka:', e));
+
+// Assurez-vous de déconnecter le producteur et le consommateur lors de l'arrêt du serveur
+process.on('SIGINT', async () => {
+  console.log('Fermeture du producteur et du consommateur Kafka...');
+  await disconnectProducer();
+  await disconnectConsumer();
+  process.exit(0);
 });
   
 app.listen(port, () => {

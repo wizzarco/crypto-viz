@@ -1,0 +1,17 @@
+# Utiliser l'image Node.js Alpine
+FROM node:alpine
+
+# Définir le répertoire de travail dans le conteneur
+WORKDIR /app
+
+# Copier tous les fichiers du répertoire actuel (où se trouve le Dockerfile) dans le conteneur
+COPY ./ ./
+
+# Installer Git (si nécessaire)
+RUN apk add --no-cache git
+
+# Mettre à jour npm et installer sfdx-cli globalement
+RUN npm install -g sfdx-cli
+
+# Commande par défaut pour exécuter votre application
+CMD ["npm", "start"]

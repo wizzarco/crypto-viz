@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 networks:
   default:
     name: t-dat-901-network
@@ -11,9 +11,9 @@ services:
     hostname: 't-dat-901-zookeeper'
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 2181 || exit 1" ]
-      interval: 5s
-      timeout: 5s
-      retries: 60
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - default
     ports:
@@ -28,9 +28,9 @@ services:
     hostname: 'kafka-server1'
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 9092 || exit 1" ]
-      interval: 5s
-      timeout: 5s
-      retries: 60
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - default 
     ports:
@@ -38,7 +38,9 @@ services:
     environment:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper-server:2181
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka-server1:9092
-      - KAFKA_BROKER_ID=1
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      #- KAFKA_BROKER_ID=1
     depends_on:
       - zookeeper-server
 
@@ -48,9 +50,9 @@ services:
     hostname: 'kafka-server2'
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 9092 || exit 1" ]
-      interval: 5s
-      timeout: 5s
-      retries: 60
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - default 
     ports:
@@ -68,9 +70,9 @@ services:
     hostname: 'kafka-server3'
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 9092 || exit 1" ]
-      interval: 5s
-      timeout: 5s
-      retries: 60
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - default 
     ports:
@@ -82,25 +84,25 @@ services:
     depends_on:
       - zookeeper-server
 
-  # kafka-sr1:
-  #   image: 'confluentinc/cp-schema-registry:latest'
-  #   container_name: 'kafka-sr1'
-  #   hostname: 'kafka-sr1'
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "nc -z kafka-sr1 8081 || exit 1" ]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 60
-  #   networks:
-  #     - default
-  #   ports:
-  #     - '8081:8081'
-  #   environment:
-  #     - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka-server1:9092,kafka-server2:9092,kafka-server3:9092
-  #     - SCHEMA_REGISTRY_HOST_NAME=kafka-sr1
-  #     - SCHEMA_REGISTRY_LISTENERS=http://host.docker.internal:8081
-  #   depends_on:
-  #     - zookeeper-server
+  kafka-sr1:
+    image: 'confluentinc/cp-schema-registry:latest'
+    container_name: 'kafka-sr1'
+    hostname: 'kafka-sr1'
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z kafka-sr1 8081 || exit 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    networks:
+      - default
+    ports:
+      - '8084:8081'
+    environment:
+      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka-server1:9092,kafka-server2:9092,kafka-server3:9092
+      - SCHEMA_REGISTRY_HOST_NAME=kafka-sr1
+      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
+    depends_on:
+      - zookeeper-server
 
   kafka-connect1:
     image: 'confluentinc/cp-kafka-connect:latest'
@@ -141,7 +143,7 @@ services:
       - cassandra-microservice
       - vue-app-microservice
 
-  # Redpanda
+  # Redpanda pour avoir une interface graphique de gestion de kafka
   redpanda:
     container_name: t-dat-901-redpanda
     image: docker.redpanda.com/redpandadata/redpanda:latest
@@ -201,6 +203,7 @@ services:
       - default
   #  volumes:
   #     - ./config/redpanda-console-config.yaml:/etc/redpanda/redpanda-console-config.yaml Pas prend en compte config optionnel
+  # Fin config redpanda
 
   # Cassandra microservice
   cassandra-microservice:
@@ -219,8 +222,11 @@ services:
       - "9042:9042"
     volumes:
       - ./config/cassandra.yaml:/etc/cassandra/cassandra.yaml
-      - ./cassandra:/var/lib/cassandraƒ
+      - ./cassandra:/var/lib/cassandra
       - ./scripts:/docker-entrypoint-initdb.d
+  # Fin de config cassandra
+
+  # Spark 
 
   # Front-end vuejs de l'appilication
   vue-app-builder:
@@ -234,11 +240,119 @@ services:
   vue-app-microservice:
     image: nginx:latest
     container_name: vue-app-microservice
+    hostname: 'vue-app-microservice'
     ports:
       - '5173:80'
     volumes:
       - ./config/nginx-default.conf:/etc/nginx/conf.d/default.conf
-      - /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/front/crypto_currency_t_dat_901/dist:/usr/share/nginx/html
-    depends_on:
-      - vue-app-builder
+      - /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/front/crypto_currency_t_dat_901/dist:/usr/src/app
 
+  create-topic-for-vue:
+    image: confluentinc/cp-kafka:latest
+    container_name: create-topic-for-vue
+    entrypoint: /bin/bash
+    command: -c "sleep 10 && kafka-topics --create --topic front_cryptoviz --partitions 3 --replication-factor 1 --bootstrap-server kafka-server1:9092"
+    depends_on:
+      - zookeeper-server
+      - kafka-server1
+    networks:
+      - default
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+
+  kafka-consumer-front:
+    build:
+      context: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/front/crypto_currency_t_dat_901
+      dockerfile: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/docker_kafka/config/dockerfile-front
+    container_name: kafka-consumer-front
+    environment:
+      - KAFKA_SERVERS=kafka-server1:9092
+      - KAFKAJS_NO_PARTITIONER_WARNING=1
+      - KAFKA_GROUP_ID=front-end-group
+    depends_on:
+      - zookeeper-server
+      - kafka-server1
+      - kafka-server2
+      - kafka-server3
+      - create-topic-for-vue 
+    networks:
+      - default
+    command: /bin/sh -c "sleep 60 && node KafkaConsumer.js"
+
+  kafka-producer-front:
+    build:
+      context: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/front/crypto_currency_t_dat_901
+      dockerfile: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/docker_kafka/config/dockerfile-front
+    container_name: kafka-producer-front
+    environment:
+      - KAFKA_SERVERS=kafka-server1:9092
+    depends_on:
+      - zookeeper-server
+      - kafka-server1
+      - kafka-server2
+      - kafka-server3
+      - create-topic-for-vue
+    networks:
+      - default
+    command: /bin/sh -c "sleep 60 && node KafkaProducer.js"
+  # Fin de la config front-end
+
+  # Lancement des serveurs Node.js
+  server-api-crypto:
+    build:
+      context: .
+      dockerfile: config/dockerfile-nodejs
+    container_name: server-api-crypto
+    command: sh -c "npm install express cors axios && sleep 60 && node /app/server.js"
+    volumes:
+      - /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/back/api_crypto:/app
+    ports:
+      - "11003:11003"
+
+  server-api-bdd-front:
+    build:
+      context: .
+      dockerfile: config/dockerfile-nodejs
+    container_name: server-api-bdd-front
+    command: sh -c "npm install express cors cassandra-driver && node /app/bdd_front.js"
+    volumes:
+      - /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/back/api_crypto:/app
+    ports:
+      - "11004:11004"
+
+  # kafka-consumer-server:
+  #   build:
+  #     context: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/front/crypto_currency_t_dat_901
+  #     dockerfile: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/docker_kafka/config/dockerfile-front
+  #   container_name: kafka-consumer-front
+  #   environment:
+  #     - KAFKA_SERVERS=kafka-server1:9092
+  #     - KAFKAJS_NO_PARTITIONER_WARNING=1
+  #     - KAFKA_GROUP_ID=front-end-group
+  #   depends_on:
+  #     - zookeeper-server
+  #     - kafka-server1
+  #     - kafka-server2
+  #     - kafka-server3
+  #     - create-topic-for-vue 
+  #   networks:
+  #     - default
+  #   command: /bin/sh -c "sleep 60 && node KafkaConsumer.js"
+
+  # kafka-producer-server:
+  #   build:
+  #     context: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/front/crypto_currency_t_dat_901
+  #     dockerfile: /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/docker_kafka/config/dockerfile-front
+  #   container_name: kafka-producer-front
+  #   environment:
+  #     - KAFKA_SERVERS=kafka-server1:9092
+  #   depends_on:
+  #     - zookeeper-server
+  #     - kafka-server1
+  #     - kafka-server2
+  #     - kafka-server3
+  #     - create-topic-for-vue
+  #   networks:
+  #     - default
+  #   command: /bin/sh -c "sleep 60 && node KafkaProducer.js"
+  # Fin du lancement des serveurs Node.js
