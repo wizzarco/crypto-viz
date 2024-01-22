@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-server1:9092', 'kafka-server2:9092', 'kafka-server3:9092']
+
+  - job_name: 'cassandra'
+    static_configs:
+      - targets: ['cassandra-microservice:9042']
+
+  - job_name: 'front'
+    static_configs:
+      - targets: ['vue-app-microservice:5173'] 
+
+  - job_name: 'backend-api'
+    static_configs:
+      - targets: ['server-api-crypto:11003']
+
+  - job_name: 'backend-api-bdd'
+    static_configs:
+      - targets: ['server-api-bdd-front:11004']

@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 networks:
   default:
     name: t-dat-901-network
@@ -205,6 +205,42 @@ services:
   #     - ./config/redpanda-console-config.yaml:/etc/redpanda/redpanda-console-config.yaml Pas prend en compte config optionnel
   # Fin config redpanda
 
+  # Grafana pour le monitoring
+  grafana:
+    image: grafana/grafana
+    container_name: t-dat-901-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - grafana-conf:/etc/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    depends_on:
+      - kafka-server1
+      - kafka-server2
+      - kafka-server3
+      - cassandra-microservice
+    networks:
+      - default
+
+  # Récupérer les monitorings avec prometheus 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - kafka-server1
+      - kafka-server2
+      - kafka-server3
+      - cassandra-microservice
+    networks:
+      - default
+
   # Cassandra microservice
   cassandra-microservice:
     image: cassandra:latest
@@ -225,8 +261,6 @@ services:
       - ./cassandra:/var/lib/cassandra
       - ./scripts:/docker-entrypoint-initdb.d
   # Fin de config cassandra
-
-  # Spark 
 
   # Front-end vuejs de l'appilication
   vue-app-builder:
@@ -320,3 +354,7 @@ services:
     ports:
       - "11004:11004"
   # Fin du lancement des serveurs Node.js
+
+volumes:
+  grafana-data:
+  grafana-conf:
