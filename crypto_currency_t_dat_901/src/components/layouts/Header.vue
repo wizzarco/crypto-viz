@@ -3,26 +3,26 @@
         <div class="flex justify-end items-center py-2 px-4 lg:px-6 lg:hidden bg-gray-700">
             <div class="flex items-center pr-56">
                 <button data-aos="fade-up" data-aos-delay="150" data-aos-once="true" type="button" data-dropdown-toggle="language-dropdown" class="inline-flex items-center text-gray-100 hover:bg-gray-600 font-medium rounded-lg text-sm px-2 lg:px-4 py-2 lg:py-2.5 mr-2 md:mr-3 focus:outline-none">
-                    <img src="/img/drapeau/france.png" class="w-5 h-5 rounded-full md:mr-2">
-                    <span class="hidden mr-2 md:inline">Français</span>
+                    <img src="/img/drapeau/royaume-uni.png" class="w-5 h-5 rounded-full md:mr-2">
+                    <span class="hidden mr-2 md:inline">English</span>
                     <svg class="hidden w-4 h-4 md:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <!-- Dropdown -->
                 <div class="hidden z-50 my-4 w-48 text-base list-none bg-white rounded divide-y divide-gray-100 shadow" id="language-dropdown">
                     <ul class="py-1" role="none">
                         <li>
-                            <a href="/fr/" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                            <a href="" disabled class="cursor-not-allowed block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
                                 <div class="inline-flex items-center">
-                                    <img src="/img/drapeau/france.png" class="h-3.5 w-3.5 rounded-full mr-2">         
-                                    Français
+                                    <img src="/img/drapeau/royaume-uni.png" class="h-3.5 w-3.5 rounded-full mr-2">                                             
+                                    English 
                                 </div>
                             </a>
                         </li>
                         <li>
-                            <a href="" disabled class="cursor-not-allowed block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                            <a href="/fr/" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
                                 <div class="inline-flex items-center">
-                                    <img src="/img/drapeau/royaume-uni.png" class="h-3.5 w-3.5 rounded-full mr-2">                                             
-                                    English (SOON)
+                                    <img src="/img/drapeau/france.png" class="h-3.5 w-3.5 rounded-full mr-2">         
+                                    Français (SOON)
                                 </div>
                             </a>
                         </li>
@@ -58,7 +58,7 @@
                 <div class="hidden col-span-3 justify-between items-center w-full lg:flex lg:w-auto lg:order-1 lg:col-span-1" id="mobile-menu-2">
                     <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
                         <li>
-                            <a href="/" class="text-sm block py-2 pr-4 pl-3 border-b border-gray-100 lg:hover:bg-transparent lg:border-0 lg:p-0 text-gray-100 hover:bg-gray-700 hover:text-gray-200 lg:hover:bg-transparent border-gray-700">Accueil</a>
+                            <a href="/" class="text-sm block py-2 pr-4 pl-3 border-b border-gray-100 lg:hover:bg-transparent lg:border-0 lg:p-0 text-gray-100 hover:bg-gray-700 hover:text-gray-200 lg:hover:bg-transparent border-gray-700">Home</a>
                         </li>
                         <li>
                             <a href="/cryptocurrency" class="text-sm block py-2 pr-4 pl-3 border-b border-gray-100 lg:hover:bg-transparent lg:border-0 lg:p-0 text-gray-100 hover:bg-gray-700 hover:text-gray-200 lg:hover:bg-transparent border-gray-700">Cryptocurrency</a>
@@ -85,26 +85,26 @@
                 </form>
                 <div class="flex items-center pr-20">
                     <button data-aos="fade-up" data-aos-delay="150" data-aos-once="true" type="button" data-dropdown-toggle="language-dropdown" class="inline-flex items-center text-gray-100 hover:bg-gray-600 font-medium rounded-lg text-sm px-2 lg:px-4 py-2 lg:py-2.5 mr-2 md:mr-3 focus:outline-none">
-                        <img src="/img/drapeau/france.png" class="w-5 h-5 rounded-full md:mr-2">
-                        <span class="hidden mr-2 md:inline">Français</span>
+                        <img src="/img/drapeau/royaume-uni.png" class="w-5 h-5 rounded-full md:mr-2">
+                        <span class="hidden mr-2 md:inline">English</span>
                         <svg class="hidden w-4 h-4 md:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <!-- Dropdown -->
                     <div class="hidden z-50 my-4 w-48 text-base list-none bg-white rounded divide-y divide-gray-100 shadow" id="language-dropdown">
                         <ul class="py-1" role="none">
                             <li>
-                                <a href="/fr/" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                <a href="" disabled class="cursor-not-allowed block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
                                     <div class="inline-flex items-center">
-                                        <img src="/img/drapeau/france.png" class="h-3.5 w-3.5 rounded-full mr-2">         
-                                        Français
+                                        <img src="/img/drapeau/royaume-uni.png" class="h-3.5 w-3.5 rounded-full mr-2">                                             
+                                        English
                                     </div>
                                 </a>
                             </li>
                             <li>
-                                <a href="" disabled class="cursor-not-allowed block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                <a href="/fr/" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
                                     <div class="inline-flex items-center">
-                                        <img src="/img/drapeau/royaume-uni.png" class="h-3.5 w-3.5 rounded-full mr-2">                                             
-                                        English (SOON)
+                                        <img src="/img/drapeau/france.png" class="h-3.5 w-3.5 rounded-full mr-2">         
+                                        Français (SOON)
                                     </div>
                                 </a>
                             </li>
