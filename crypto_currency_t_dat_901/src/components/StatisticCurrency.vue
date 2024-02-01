@@ -34,7 +34,7 @@
                             <tr v-for="cryptocurrency in cryptocurrencies" class="hover:bg-gray-600">
                                 <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ cryptocurrency.ratingrank }}</td>
                                 <th class="border-t-0 px-6 align-middle border border-solid border-gray-100 text-sm border-l-0 border-r-0 whitespace-nowrap p-4 text-left flex items-center text-gray-100">
-                                <img :src="cryptocurrency.image" class="mr-2 h-6"/><a href="#">{{ cryptocurrency.symbol }}</a></th>
+                                <img :src="cryptocurrency.image" class="mr-2 h-6"/><a :href="`/cryptocurrency/${cryptocurrency.symbol}`">{{ cryptocurrency.symbol }}</a></th>
                                 <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ cryptocurrency.price }}</td>
                                 <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100"><i class="fas fa-arrow-down text-red-500 mr-4"></i>{{ cryptocurrency.volumehour }}</td>
                                 <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100"><i class="fas fa-arrow-up text-emerald-500 mr-4"></i>{{ cryptocurrency.volume24h }}</td>

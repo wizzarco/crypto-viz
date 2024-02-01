@@ -18,10 +18,10 @@
                         </div>
                     </div>
                     
-                    <img data-aos="fade-up" data-aos-delay="400" data-aos-once="true" src="img/pattern/star.png" class="hidden sm:block absolute ml-8 bottom-40 xl:bottom-80 left-4 xl:left-0 w-6"/>
-                    <img data-aos="fade-up" data-aos-delay="400" data-aos-once="true" src="img/pattern/ellipse-3.png" class="hidden sm:block absolute top-4 sm:top-80 right-64 sm:right-96 xl:right-[32rem] w-6"/>
-                    <img data-aos="fade-up" data-aos-delay="400" data-aos-once="true" src="img/pattern/ellipse-2.png" class="hidden sm:block absolute bottom-56 right-24 w-6"/>
-                    <img data-aos="fade-up" data-aos-delay="400" data-aos-once="true" src="img/pattern/ellipse-2.png" class="hidden sm:block absolute sm:top-48 right-16 lg:right-0 lg:left-[30rem] w-8"/>
+                    <img data-aos="fade-up" data-aos-delay="400" data-aos-once="true" src="/img/pattern/star.png" class="hidden sm:block absolute ml-8 bottom-40 xl:bottom-80 left-4 xl:left-0 w-6"/>
+                    <img data-aos="fade-up" data-aos-delay="400" data-aos-once="true" src="/img/pattern/ellipse-3.png" class="hidden sm:block absolute top-4 sm:top-80 right-64 sm:right-96 xl:right-[32rem] w-6"/>
+                    <img data-aos="fade-up" data-aos-delay="400" data-aos-once="true" src="/img/pattern/ellipse-2.png" class="hidden sm:block absolute bottom-56 right-24 w-6"/>
+                    <img data-aos="fade-up" data-aos-delay="400" data-aos-once="true" src="/img/pattern/ellipse-2.png" class="hidden sm:block absolute sm:top-48 right-16 lg:right-0 lg:left-[30rem] w-8"/>
                 </div>
 
                 <!--  Statistique des exchanges -->

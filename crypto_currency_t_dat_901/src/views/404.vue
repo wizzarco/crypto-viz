@@ -19,7 +19,7 @@
                     </div>
                 </div>
             </main>
-            <center><img src="img/error-404.png" class="h-48"/></center>
+            <center><img src="/img/error-404.png" class="h-48"/></center>
         </div>
 
     </div>
