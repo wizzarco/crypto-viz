@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const http = require('http');
+const WebSocket = require('ws');
 const { connectProducer, sendToKafka, disconnectProducer } = require('./kafka_server/KafkaProducer');
 const { connectConsumer, consumeMessages, disconnectConsumer } = require('./kafka_server/KafkaConsumer');
 
@@ -14,6 +16,22 @@ const apiKey = '422b67ada252e9771ef77e13b5f220c551d1861649895ec3d42fabf7741534ef
 
 // Démarrage du Producer Kafka
 connectProducer().then(() => console.log('Producteur Kafka connecté')).catch(e => console.error('Erreur de connexion du producer Kafka:', e));
+
+// Création du serveur HTTP et du serveur WebSocket
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', (ws) => {
+  console.log('Client WebSocket connecté');
+
+  ws.on('message', (message) => {
+      console.log(`Reçu: ${message}`);
+  });
+
+  ws.on('close', () => {
+      console.log('Client WebSocket déconnecté');
+  });
+});
 
 app.get('/api_back/cryptos/top-trending', async (req, res) => {
   try {
@@ -125,6 +143,12 @@ app.get('/api_back/cryptos/all-cryptocurrency', async (req, res) => {
             };
         });
 
+        wss.clients.forEach(function each(client) {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(allCurrencyCryptos));
+          }
+        });
+
         await sendToKafka('server_cryptoviz', allCurrencyCryptos);
 
         res.json(allCurrencyCryptos);
@@ -192,6 +216,6 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
   
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Le serveur est en cours d'exécution sur http://localhost:${port}`);
 });
