@@ -24,8 +24,7 @@
                                 <th class="px-6 text-gray-100 align-middle border border-solid border-gray-500 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">24h %</th>
                                 <th class="px-6 text-gray-100 align-middle border border-solid border-gray-500 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">7d %</th>
                                 <th class="px-6 text-gray-100 align-middle border border-solid border-gray-500 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">Volume (24h)</th>
-                                <th class="px-6 text-gray-100 align-middle border border-solid border-gray-500 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">Circulating Supply</th>
-                                <th class="px-6 text-gray-100 align-middle border border-solid border-gray-500 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">Volume Graph (7d)</th>
+                                <th class="px-6 text-gray-100 align-middle border border-solid border-gray-500 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">Price Change</th>
                             </tr>
                         </thead>
 
@@ -36,12 +35,14 @@
                                 <th class="border-t-0 px-6 align-middle border border-solid border-gray-100 text-sm border-l-0 border-r-0 whitespace-nowrap p-4 text-left flex items-center text-gray-100">
                                 <img :src="cryptocurrency.image" class="mr-2 h-6"/><a :href="`/cryptocurrency/${cryptocurrency.symbol}`">{{ cryptocurrency.symbol }}</a></th>
                                 <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ cryptocurrency.price }}</td>
-                                <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100"><i class="fas fa-arrow-down text-red-500 mr-4"></i>{{ cryptocurrency.volumehour }}</td>
-                                <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100"><i class="fas fa-arrow-up text-emerald-500 mr-4"></i>{{ cryptocurrency.volume24h }}</td>
-                                <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100"><i class="fas fa-arrow-down text-red-500 mr-4"></i>{{ cryptocurrency.volumeday }}</td>
+                                <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ cryptocurrency.volumehour }}</td>
+                                <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ cryptocurrency.volume24h }}</td>
+                                <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ cryptocurrency.volumeday }}</td>
                                 <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ cryptocurrency.top24h }}</td>
-                                <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ cryptocurrency.maxsupply }}</td>
-                                <td class="border-t-0 border border-solid border-gray-100 x-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-red-500"></td>
+                                <td class="border-t-0 border border-solid border-gray-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4">
+                                    <span v-if="cryptocurrency.priceChange > 0" class="text-green-500"><i class="fas fa-arrow-up"></i></span>
+                                    <span v-else-if="cryptocurrency.priceChange < 0" class="text-red-500"><i class="fas fa-arrow-down"></i></span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -120,39 +121,72 @@
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue';
-    import axios from 'axios';
+import { ref, onMounted, onUnmounted } from 'vue';
+import axios from 'axios'
 
-    const cryptocurrencies = ref([]);
-    const currentPage = ref(1);
-    const totalPage = ref(159);
-    const sortedCryptocurrencies = ref([]);
+const cryptocurrencies = ref([]);
+const currentPage = ref(1);
+const totalPage = ref(159);
+let socket = null;
 
-    const loadPage = async (page) => {
+const loadPage = async (page) => {
     try {
         if (page < 1) {
             return;
         }
 
         const response = await axios.get(`http://localhost:11003/api_back/cryptos/all-cryptocurrency?page=${page}`);
-        cryptocurrencies.value = response.data;
+        const newData = response.data;
 
-        // Tri du tableau par le prix (price) en ordre décroissant
-        sortedCryptocurrencies.value = response.data.slice().sort((a, b) => b.price - a.price);
-
-        // Calculer le rang en fonction de la page actuelle
-        const startIndex = (page - 1) * response.data.length;
-            sortedCryptocurrencies.value.forEach((crypto, index) => {
-            crypto.rank = startIndex + index + 1;
-        });
-
-        currentPage.value = page;
-        } catch (error) {
-            console.error('Error loading page:', error.response ? error.response.data : error.message);
+        // Comparaison des prix et ajout de la propriété priceChange
+        for (let crypto of newData) {
+            const oldCrypto = cryptocurrencies.value.find(c => c.symbol === crypto.symbol);
+            crypto.priceChange = oldCrypto ? crypto.price - oldCrypto.price : 0;
         }
-    };
 
-    onMounted(() => {
-        loadPage(currentPage.value);
-    });
+        // Mise à jour des données
+        cryptocurrencies.value = newData;
+        currentPage.value = page;
+    } catch (error) {
+        console.error('Error loading page:', error.response ? error.response.data : error.message);
+    }
+};
+
+const handleWebSocketMessage = (event) => {
+  try {
+    const newData = JSON.parse(event.data);
+
+    // Comparaison des prix et ajout de la propriété priceChange
+    for (let crypto of newData) {
+      const oldCrypto = cryptocurrencies.value.find((c) => c.symbol === crypto.symbol);
+      crypto.priceChange = oldCrypto ? crypto.price - oldCrypto.price : 0;
+    }
+
+    // Mise à jour des données
+    cryptocurrencies.value = newData;
+  } catch (error) {
+    console.error('Error handling WebSocket message:', error);
+  }
+};
+
+onMounted(() => {
+  // Create a WebSocket connection
+  socket = new WebSocket('ws://localhost:11003'); // Replace with your WebSocket URL
+
+  // Listen for WebSocket messages
+  socket.addEventListener('message', handleWebSocketMessage);
+
+  // Load initial data
+  loadPage(currentPage.value);
+});
+
+onUnmounted(() => {
+  // Close the WebSocket connection when the component is unmounted
+  if (socket) {
+    socket.close();
+  }
+});
 </script>
+
+
+

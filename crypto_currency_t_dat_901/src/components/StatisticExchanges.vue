@@ -24,7 +24,6 @@
                             <th class="px-6 text-gray-100 align-middle border border-solid border-sky-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">Country</th>
                             <th class="px-6 text-gray-100 align-middle border border-solid border-sky-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">Negative Report</th>
                             <th class="px-6 text-gray-100 align-middle border border-solid border-sky-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">Market Quality</th>
-                            <th class="px-6 text-gray-100 align-middle border border-solid border-sky-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">Volume Graph (7d)</th>
                         </tr>
                     </thead>
 
@@ -48,7 +47,6 @@
                             <td class="border-t-0 border border-solid border-sky-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ crypto.country }}</td>
                             <td class="border-t-0 border border-solid border-sky-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ crypto.negativereport }}</td>
                             <td class="border-t-0 border border-solid border-sky-100 px-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-gray-100">{{ crypto.marketquality }}</td>
-                            <td class="border-t-0 border border-solid border-sky-100 x-6 align-center border-l-0 border-r-0 text-sm whitespace-nowrap p-4 text-red-500">À faire</td>
                         </tr>
                     </tbody>
 
