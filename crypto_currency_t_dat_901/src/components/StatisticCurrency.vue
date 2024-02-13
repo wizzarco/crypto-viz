@@ -122,7 +122,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import axios from 'axios'
+import axios from 'axios';
 
 const cryptocurrencies = ref([]);
 const currentPage = ref(1);
@@ -138,14 +138,23 @@ const loadPage = async (page) => {
         const response = await axios.get(`http://localhost:11003/api_back/cryptos/all-cryptocurrency?page=${page}`);
         const newData = response.data;
 
-        // Comparaison des prix et ajout de la propriété priceChange
-        for (let crypto of newData) {
-            const oldCrypto = cryptocurrencies.value.find(c => c.symbol === crypto.symbol);
-            crypto.priceChange = oldCrypto ? crypto.price - oldCrypto.price : 0;
-        }
+        // Mise à jour des données avec la comparaison des prix
+        cryptocurrencies.value = newData.map(newCrypto => {
+            const oldCrypto = cryptocurrencies.value.find(c => c.symbol === newCrypto.symbol);
+            if (oldCrypto) {
+                // Calculer le priceChange seulement si le prix a changé
+                if (oldCrypto.price !== newCrypto.price) {
+                    newCrypto.priceChange = newCrypto.price - oldCrypto.price;
+                } else {
+                    // Garder l'ancien priceChange si le prix n'a pas changé
+                    newCrypto.priceChange = oldCrypto.priceChange;
+                }
+            } else {
+                newCrypto.priceChange = 0; // Aucun changement de prix si la crypto est nouvelle
+            }
+            return newCrypto;
+        });
 
-        // Mise à jour des données
-        cryptocurrencies.value = newData;
         currentPage.value = page;
     } catch (error) {
         console.error('Error loading page:', error.response ? error.response.data : error.message);
@@ -153,40 +162,43 @@ const loadPage = async (page) => {
 };
 
 const handleWebSocketMessage = (event) => {
-  try {
-    const newData = JSON.parse(event.data);
+    try {
+        const newData = JSON.parse(event.data);
 
-    // Comparaison des prix et ajout de la propriété priceChange
-    for (let crypto of newData) {
-      const oldCrypto = cryptocurrencies.value.find((c) => c.symbol === crypto.symbol);
-      crypto.priceChange = oldCrypto ? crypto.price - oldCrypto.price : 0;
+        // Appliquer la même logique de mise à jour que dans loadPage
+        cryptocurrencies.value = newData.map(newCrypto => {
+            const oldCrypto = cryptocurrencies.value.find(c => c.symbol === newCrypto.symbol);
+            if (oldCrypto) {
+                if (oldCrypto.price !== newCrypto.price) {
+                    newCrypto.priceChange = newCrypto.price - oldCrypto.price;
+                } else {
+                    newCrypto.priceChange = oldCrypto.priceChange;
+                }
+            } else {
+                newCrypto.priceChange = 0;
+            }
+            return newCrypto;
+        });
+    } catch (error) {
+        console.error('Error handling WebSocket message:', error);
     }
-
-    // Mise à jour des données
-    cryptocurrencies.value = newData;
-  } catch (error) {
-    console.error('Error handling WebSocket message:', error);
-  }
 };
 
 onMounted(() => {
-  // Create a WebSocket connection
-  socket = new WebSocket('ws://localhost:11003'); // Replace with your WebSocket URL
+    socket = new WebSocket('ws://localhost:11003');
 
-  // Listen for WebSocket messages
-  socket.addEventListener('message', handleWebSocketMessage);
+    socket.addEventListener('message', handleWebSocketMessage);
 
-  // Load initial data
-  loadPage(currentPage.value);
+    loadPage(currentPage.value);
+
+    setInterval(() => {
+        loadPage(currentPage.value);
+    }, 5000);
 });
 
 onUnmounted(() => {
-  // Close the WebSocket connection when the component is unmounted
-  if (socket) {
-    socket.close();
-  }
+    if (socket) {
+        socket.close();
+    }
 });
 </script>
-
-
-

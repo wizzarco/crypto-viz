@@ -75,12 +75,21 @@
         </nav>
         <nav class="border-gray-200 border-gray-600 bg-gray-700 hidden lg:block">
             <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-2xl px-4 md:px-6 py-2.5">
-                <form id="search-form" class="hidden w-96 lg:inline-block pl-24">   
+                <form id="search-form" class="hidden w-96 lg:inline-block pl-24">
                     <div class="relative">
                         <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
                             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
-                        <input type="search" id="search-bar" class="block py-2 px-4 pl-10 w-full text-sm text-gray-900 bg-gray-300 rounded-lg border border-gray-300 focus:ring-sky-500 focus:border-sky-500" placeholder="Recherche">
+                        <input type="search" id="search-bar" v-model="searchQuery" @input="filterCryptocurrencies" class="block py-2 px-4 pl-10 w-full text-sm text-gray-900 bg-gray-300 rounded-lg border border-gray-300 focus:ring-sky-500 focus:border-sky-500" placeholder="Recherche">
+                        <div class="absolute w-full bg-white mt-1 rounded-md shadow-lg z-10 overflow-y-scroll h-48" v-if="filteredCryptos.length">
+                            <ul v-if="filteredCryptos.length > 0">
+                                <li v-for="crypto in filteredCryptos" :key="crypto.id" class="p-2 hover:bg-gray-200 cursor-pointer">
+                                    <a :href="`/cryptocurrency/${crypto.symbol}`">
+                                        <img :src="crypto.image" class="inline mr-2 h-6">{{ crypto.symbol }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </form>
                 <div class="flex items-center pr-20">
@@ -115,3 +124,44 @@
         </nav>
     </header>
 </template>
+
+<script setup>
+    import { ref, onMounted } from 'vue';
+    import axios from 'axios';
+    import { useRouter } from 'vue-router';
+
+    const TOTAL_PAGES = 159;
+    const router = useRouter();
+    const searchQuery = ref('');
+    const cryptocurrencies = ref([]);
+    const filteredCryptos = ref([]);
+
+    const loadCryptocurrencies = async () => {
+        try {
+            for (let page = 1; page <= TOTAL_PAGES; page++) {
+                const response = await axios.get(`http://localhost:11003/api_back/cryptos/all-cryptocurrency?page=${page}`);
+                cryptocurrencies.value.push(...response.data);
+            }
+        } catch (error) {
+            console.error('Error loading cryptocurrencies:', error);
+        }
+    };
+
+    const filterCryptocurrencies = () => {
+        const searchLower = searchQuery.value.toLowerCase();
+        filteredCryptos.value = cryptocurrencies.value.filter(crypto => 
+            crypto.symbol.toLowerCase().includes(searchLower) || 
+            crypto.fullname.toLowerCase().includes(searchLower)
+        );
+    };
+    
+    const redirectToCrypto = (symbol) => {
+        router.push(`/cryptocurrency/${symbol}`);
+        searchQuery.value = '';
+        filteredCryptos.value = [];
+    };
+
+    onMounted(() => {
+        loadCryptocurrencies();
+    });
+</script>
