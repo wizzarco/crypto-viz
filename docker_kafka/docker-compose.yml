@@ -177,7 +177,12 @@ services:
     container_name: t-dat-901-console
     image: docker.redpanda.com/redpandadata/console:latest
     entrypoint: /bin/sh
-    command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
+    command: -c "sleep 60 && echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
     environment:
       CONFIG_FILEPATH: /tmp/config.yml
       CONSOLE_CONFIG_FILE: |
@@ -244,12 +249,12 @@ services:
   # Cassandra microservice
   cassandra-microservice:
     image: cassandra:latest
-    mem_limit: 2g
+    mem_limit: 4g
     container_name: 'cassandra-microservice'
     hostname: 'cassandra-microservice'
     healthcheck:
       test: ["CMD-SHELL", "cqlsh", "-e", "describe keyspaces" ]
-      interval: 5s
+      interval: 30s
       timeout: 5s
       retries: 60
     networks:
@@ -331,6 +336,20 @@ services:
     command: /bin/sh -c "sleep 60 && node KafkaProducer.js"
   # Fin de la config front-end
 
+  # Config du fichié python pour save dans la bdd
+  python-crypto-task:
+    build:
+      context: ./config
+      dockerfile: dockerfile-python
+    container_name: python-crypto-task
+    command: /bin/sh -c "sleep 90 && python3 /app/crypto.py"
+    volumes:
+      - ../back/api_crypto/api_server_python:/app
+    ports:
+      - "11002:11002"
+    networks:
+      - default
+
   # Lancement des serveurs Node.js
   server-api-crypto:
     build:
@@ -342,6 +361,8 @@ services:
       - /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/back/api_crypto:/app
     ports:
       - "11003:11003"
+    networks:
+      - default
 
   server-api-bdd-front:
     build:
@@ -353,6 +374,8 @@ services:
       - /Users/macpro-loic/Documents/epitech_msc_pro/T-DAT-901/projet/back/api_crypto:/app
     ports:
       - "11004:11004"
+    networks:
+      - default
   # Fin du lancement des serveurs Node.js
 
 volumes:
