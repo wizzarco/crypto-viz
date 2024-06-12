@@ -3,8 +3,8 @@ const cors = require('cors');
 const axios = require('axios');
 const http = require('http');
 const WebSocket = require('ws');
-// const { connectProducer, sendToKafka, disconnectProducer } = require('./kafka_server/KafkaProducer');
-// const { connectConsumer, consumeMessages, disconnectConsumer } = require('./kafka_server/KafkaConsumer');
+const { connectProducer, sendToKafka, disconnectProducer } = require('./kafka_server/KafkaProducer');
+const { connectConsumer, consumeMessages, disconnectConsumer } = require('./kafka_server/KafkaConsumer');
 
 const app = express();
 const port = process.env.PORT || 11003;
@@ -12,10 +12,10 @@ const port = process.env.PORT || 11003;
 app.use(express.json());
 app.use(cors());
 
-const apiKey = '422b67ada252e9771ef77e13b5f220c551d1861649895ec3d42fabf7741534ef';
+const apiKey = '422b67ada252e9771ef77e13b5f220c551d1861649895ec3d42fabf7741534ef'; // Si vous récupérez le projet du github wizzarco, changer la clé api par la votre -> https://min-api.cryptocompare.com/
 
 // Démarrage du Producer Kafka
-// connectProducer().then(() => console.log('Producteur Kafka connecté')).catch(e => console.error('Erreur de connexion du producer Kafka:', e));
+connectProducer().then(() => console.log('Producteur Kafka connecté')).catch(e => console.error('Erreur de connexion du producer Kafka:', e));
 
 // Création du serveur HTTP et du serveur WebSocket
 const server = http.createServer(app);
@@ -49,7 +49,7 @@ app.get('/api_back/cryptos/top-trending', async (req, res) => {
         marketperformance: crypto.DISPLAY.USD.TOPTIERVOLUME24HOUR,
     }));
 
-    // await sendToKafka('server_cryptoviz', topTrendingCryptos);
+    await sendToKafka('server_cryptoviz', topTrendingCryptos);
 
     res.json(topTrendingCryptos);
   } catch (error) {
@@ -74,7 +74,7 @@ app.get('/api_back/cryptos/top-gainers', async (req, res) => {
         market_cap: crypto.DISPLAY.USD.MKTCAP,
     }));
 
-    // await sendToKafka('server_cryptoviz', topGainersCryptos);
+    await sendToKafka('server_cryptoviz', topGainersCryptos);
 
     res.json(topGainersCryptos);
   } catch (error) {
@@ -104,7 +104,7 @@ app.get('/api_back/cryptos/total-mining', async (req, res) => {
         };
       });
 
-      // await sendToKafka('server_cryptoviz', totalMiningCryptos);
+      await sendToKafka('server_cryptoviz', totalMiningCryptos);
   
       res.json(totalMiningCryptos);
     } catch (error) {
@@ -149,7 +149,7 @@ app.get('/api_back/cryptos/all-cryptocurrency', async (req, res) => {
           }
         });
 
-        // await sendToKafka('server_cryptoviz', allCurrencyCryptos);
+        await sendToKafka('server_cryptoviz', allCurrencyCryptos);
 
         res.json(allCurrencyCryptos);
     } catch (error) {
@@ -190,7 +190,7 @@ app.get('/api_back/cryptos/all-exchanges', async (req, res) => {
           };
       });
 
-      // await sendToKafka('server_cryptoviz', allExchangesCryptos);
+      await sendToKafka('server_cryptoviz', allExchangesCryptos);
 
       res.json(allExchangesCryptos);
   } catch (error) {
@@ -199,22 +199,20 @@ app.get('/api_back/cryptos/all-exchanges', async (req, res) => {
   }
 });
 
-// // Démarrage et utilisation du Consommateur Kafka
-// connectConsumer().then(() => {
-//   console.log('Consommateur Kafka connecté');
-//   consumeMessages((data) => {
-//     console.log('Message reçu:', data);
-//     // Traitez ici les données reçues de Kafka
-//   });
-// }).catch(e => console.error('Erreur de connexion du consommateur Kafka:', e));
+// Démarrage et utilisation du Consommateur Kafka
+connectConsumer().then(() => {
+  console.log('Consommateur Kafka connecté');
+  consumeMessages((data) => {
+    console.log('Message reçu:', data);
+  });
+}).catch(e => console.error('Erreur de connexion du consommateur Kafka:', e));
 
-// // Assurez-vous de déconnecter le producteur et le consommateur lors de l'arrêt du serveur
-// process.on('SIGINT', async () => {
-//   console.log('Fermeture du producteur et du consommateur Kafka...');
-//   await disconnectProducer();
-//   await disconnectConsumer();
-//   process.exit(0);
-// });
+process.on('SIGINT', async () => {
+  console.log('Fermeture du producteur et du consommateur Kafka...');
+  await disconnectProducer();
+  await disconnectConsumer();
+  process.exit(0);
+});
   
 server.listen(port, () => {
   console.log(`Le serveur est en cours d'exécution sur http://localhost:${port}`);

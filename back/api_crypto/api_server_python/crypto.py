@@ -273,7 +273,7 @@ def connexion_cassandra():
         except Exception as e:
             print(f"Erreur lors de la connexion à la base de données : {e}")
         
-        time.sleep(60000)
+        time.sleep(300)
 
 def update_data_top():
     while True:
@@ -283,7 +283,7 @@ def update_data_top():
         except Exception as e:
             print(f"Erreur lors de la mise à jour des données : {e}")
 
-        time.sleep(300)
+        time.sleep(120)
     
 def update_data_all():
     while True:
@@ -293,7 +293,7 @@ def update_data_all():
         except Exception as e:
             print(f"Erreur lors de la mise à jour des données : {e}")
 
-        time.sleep(300)
+        time.sleep(120)
 
 if __name__ == '__main__':
     update_thread = threading.Thread(target=connexion_cassandra)
